@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dpl-nginx-multitool # Имя деплоймента
+  namespace: dz3 # Пространство имен
+spec:
+  replicas: 1 # Количество реплик
+  selector: # Селектор на наши метки
+    matchLabels:
+      app: web
+  template: # Шаблон ПОДа
+    metadata:
+      labels: # Метки, которые будут установлены при запуске ПОДа из этого шаблона
+        app: web
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.19.2
+      - name: multitool
+        image: wbitt/network-multitool
+        env: # Переменные.
+          - name: HTTP_PORT
+            value: "31080" # Переменные. В данном случае нестандартный порт
