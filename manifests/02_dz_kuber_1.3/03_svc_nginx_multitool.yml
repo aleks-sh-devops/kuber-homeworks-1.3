@@ -1,0 +1,21 @@
+apiVersion: v1 # Мы указываем для api сервера, что мы описываем объект из api версии 1
+kind: Service # Мы разворачиваем объект типа Сервис
+metadata:
+  name: svc-nginx-multitool-dz3 # Имя сервиса
+  namespace: dz3
+spec:
+  ports:
+    - name: http-app
+      port: 80 # Номер порта, на котором слушает наш сервис
+      protocol: TCP
+      targetPort: 80
+    - name: https-app
+      port: 443 # Номер порта, на котором слушает наш сервис
+      protocol: TCP
+      targetPort: 443
+    - name: http-app-unst
+      port: 31080 # Номер порта, на котором слушает наш сервис
+      protocol: TCP
+      targetPort: 31080
+  selector:
+    app: web # В селекторе указываем лейбл пода, чтобы он его нашел и подключился
