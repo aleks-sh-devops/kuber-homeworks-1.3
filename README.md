@@ -184,8 +184,24 @@ Defaulted container "nginx" out of: nginx, multitool
 3. Продемонстрировать количество подов до и после масштабирования.  
 Есть  
 
-4. Создать Service, который обеспечит доступ до реплик приложений из п.1.
-5. Создать отдельный Pod с приложением multitool и убедиться с помощью `curl`, что из пода есть доступ до приложений из п.1.
+4. Создать Service, который обеспечит доступ до реплик приложений из п.1.  
+Есть:
+```
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl apply -f ~/manifests/02_dz_kuber_1.3/03_svc_nginx_multitool.yml
+service/svc-nginx-multitool-dz3 created
+```
+
+Проверяем:
+```
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl get svc -n dz3 -o wide
+NAME                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                    AGE   SELECTOR
+svc-nginx-multitool-dz3   ClusterIP   10.152.183.250   <none>        80/TCP,443/TCP,31080/TCP   33m   app=web
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl get ep -n dz3 -o wide
+NAME                      ENDPOINTS                                                    AGE
+svc-nginx-multitool-dz3   10.1.198.88:443,10.1.63.163:443,10.1.198.88:80 + 3 more...   33m
+```
+
+6. Создать отдельный Pod с приложением multitool и убедиться с помощью `curl`, что из пода есть доступ до приложений из п.1.
 
 
 
