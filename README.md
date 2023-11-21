@@ -25,10 +25,36 @@
 ### Задание 1. Создать Deployment и обеспечить доступ к репликам приложения из другого Pod
 
 1. Создать Deployment приложения, состоящего из двух контейнеров — nginx и multitool. Решить возникшую ошибку.
+
+Создаем пространство имен под ДЗ:
+```
+kubectl get ns
+NAME              STATUS   AGE
+kube-system       Active   7d15h
+kube-public       Active   7d15h
+kube-node-lease   Active   7d15h
+default           Active   7d15h
+lesson2           Active   14h
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl apply -f ~/manifests/02_dz_kuber_1.3/01_namespace.yml
+namespace/dz3 created
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl get ns
+NAME              STATUS   AGE
+kube-system       Active   7d15h
+kube-public       Active   7d15h
+kube-node-lease   Active   7d15h
+default           Active   7d15h
+lesson2           Active   14h
+dz3               Active   4s
+```
+
+
 2. После запуска увеличить количество реплик работающего приложения до 2.
 3. Продемонстрировать количество подов до и после масштабирования.
 4. Создать Service, который обеспечит доступ до реплик приложений из п.1.
 5. Создать отдельный Pod с приложением multitool и убедиться с помощью `curl`, что из пода есть доступ до приложений из п.1.
+
+
+
 
 ------
 
