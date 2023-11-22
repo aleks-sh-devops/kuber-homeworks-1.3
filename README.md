@@ -271,4 +271,95 @@ usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl exec -n dz3 test-multitoo
 3. Создать и запустить Service. Убедиться, что Init запустился.
 4. Продемонстрировать состояние пода до и после запуска сервиса.
 
+Запускаю деплоймент:
+```
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl apply -f ~/manifests/02_dz_kuber_1.3/05_deploy_nginx_init.yml
+deployment.apps/dpl-nginx-init created
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl get pods -n dz3 -o wide
+NAME                                   READY   STATUS     RESTARTS   AGE   IP            NODE          NOMINATED NODE   READINESS GATES
+dpl-nginx-multitool-645c8c8575-hgmwp   2/2     Running    0          14h   10.1.198.88   microk8s-01   <none>           <none>
+dpl-nginx-multitool-645c8c8575-zp2t8   2/2     Running    0          14h   10.1.63.163   microk8s-02   <none>           <none>
+test-multitool                         1/1     Running    0          13h   10.1.198.89   microk8s-01   <none>           <none>
+dpl-nginx-init-5986fb5cb7-jvxf5        0/1     Init:0/1   0          9s    10.1.63.167   microk8s-02   <none>           <none>
+
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl get pods -n dz3 -o wide
+NAME                                   READY   STATUS    RESTARTS   AGE   IP            NODE          NOMINATED NODE   READINESS GATES
+dpl-nginx-multitool-645c8c8575-hgmwp   2/2     Running   0          14h   10.1.198.88   microk8s-01   <none>           <none>
+dpl-nginx-multitool-645c8c8575-zp2t8   2/2     Running   0          14h   10.1.63.163   microk8s-02   <none>           <none>
+test-multitool                         1/1     Running   0          13h   10.1.198.89   microk8s-01   <none>           <none>
+dpl-nginx-init-5986fb5cb7-jvxf5        1/1     Running   0          37s   10.1.63.167   microk8s-02   <none>           <none>
+```
+
+Параллельно во втором открытом окне:
+```
+usrcon@cli-k8s-01:~$ kubectl get pods -n dz3 -w
+NAME                                   READY   STATUS    RESTARTS   AGE
+dpl-nginx-multitool-645c8c8575-hgmwp   2/2     Running   0          14h
+dpl-nginx-multitool-645c8c8575-zp2t8   2/2     Running   0          14h
+test-multitool                         1/1     Running   0          13h
+dpl-nginx-init-5986fb5cb7-jvxf5        0/1     Pending   0          0s
+dpl-nginx-init-5986fb5cb7-jvxf5        0/1     Pending   0          0s
+dpl-nginx-init-5986fb5cb7-jvxf5        0/1     Init:0/1   0          1s
+dpl-nginx-init-5986fb5cb7-jvxf5        0/1     Init:0/1   0          2s
+dpl-nginx-init-5986fb5cb7-jvxf5        0/1     Init:0/1   0          5s
+dpl-nginx-init-5986fb5cb7-jvxf5        0/1     PodInitializing   0          35s
+dpl-nginx-init-5986fb5cb7-jvxf5        1/1     Running           0          36s
+```
+
+Создаю и запускаю сервис для нашего деплоймента:
+```
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl get svc -n dz3 -o wide
+NAME                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                    AGE   SELECTOR
+svc-nginx-multitool-dz3   ClusterIP   10.152.183.250   <none>        80/TCP,443/TCP,31080/TCP   14h   app=web
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl apply -f ~/manifests/02_dz_kuber_1.3/06_svc_nginx_init.yml
+service/svc-nginx-init-dz3 created
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl get svc -n dz3 -o wide
+NAME                      TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                    AGE   SELECTOR
+svc-nginx-multitool-dz3   ClusterIP   10.152.183.250   <none>        80/TCP,443/TCP,31080/TCP   14h   app=web
+svc-nginx-init-dz3        ClusterIP   10.152.183.53    <none>        80/TCP                     7s    app=web-init
+```
+
+Проверяем, что эндпоинт нормально подвязался:
+```
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl get ep -n dz3 -o wide
+NAME                      ENDPOINTS                                                    AGE
+svc-nginx-multitool-dz3   10.1.198.88:443,10.1.63.163:443,10.1.198.88:80 + 3 more...   14h
+svc-nginx-init-dz3        10.1.63.167:80                                               45s
+```
+
+Ну и проверяем доступность пода через сервис:
+```
+usrcon@cli-k8s-01:~/manifests/02_dz_kuber_1.3$ kubectl exec -n dz3 test-multitool -- curl svc-nginx-init-dz3
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   612  100   612    0     0  41073      0 --:--:-- --:--:-- --:--:-- 43714
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+```
+
+Успех.
+
 ------
