@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dpl-nginx-init # Имя деплоймента
+  namespace: dz3 # Пространство имен
+spec:
+  replicas: 1 # Количество реплик
+  selector: # Селектор на наши метки
+    matchLabels:
+      app: web-init
+  template: # Шаблон ПОДа
+    metadata:
+      labels: # Метки, которые будут установлены при запуске ПОДа из этого шаблона
+        app: web-init
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.19.2
+      initContainers:
+      - name: init-busybox
+        image: busybox
+        command: ['sleep', '30']
